@@ -1,14 +1,23 @@
+from datetime import datetime
 from shiny import App, render, ui
 import pandas as pd
 import numpy as np
 import io
+import json
+import os
 import seaborn as sns
 #import shinyswatch
 import matplotlib.pyplot as plt
 from shiny.types import ImgData
 from shiny import App, render, ui, reactive, req, ui
 
-#df = pd.read_excel('ContractsALL.xlsx')
+# log number of visitors in a simple json
+COUNTER_FILE = "visitors.json"
+if os.path.exists(COUNTER_FILE):
+    with open(COUNTER_FILE, "r") as f:
+        visitors_data = json.load(f)
+else:
+    visitors_data = {"total": 0, "monthly": 0, "month": datetime.now().strftime("%Y-%m")}
 
 # use this line when running on the shiny server
 with open("ContractsSMALL.csv", 'rb') as f:
@@ -101,14 +110,19 @@ app_ui = ui.page_navbar(
             ),
         ),
         ui.layout_columns(  
-        ui.card(  
-            ui.card_header("ИНОВАТИВНА ЛАБОРАТОРИЈА"),
-            ui.p("Овој проект е реализиран според Меморандумот за соработка меѓу Канцеларијата на Главниот ревизор на Норвешка и Државниот завод за ревизија"),
+            ui.card(  
+                ui.card_header("ИНОВАТИВНА ЛАБОРАТОРИЈА"),
+                ui.p("Овој проект е реализиран според Меморандумот за соработка меѓу Канцеларијата на Главниот ревизор на Норвешка и Државниот завод за ревизија"),
             ),
-        ui.card(
-            ui.card_header("INNOVATIVE LABORATORY"),
-            ui.p("This project is acomplished according Memorandum of cooperation between the Office of the Auditor General of Norway and the State Audit Office"),
+            ui.card(
+                ui.card_header("INNOVATIVE LABORATORY"),
+                ui.p("This project is acomplished according Memorandum of cooperation between the National Audit Office of Norway and the State Audit Office"),
             ),
+            ui.card(
+                ui.card_header("Visitors:", class_="text-end"),
+                ui.p(f"Total: {visitors_data['total']}, This month: {visitors_data['monthly']}", class_="text-end"),
+            ),
+            col_widths={"sm": [5, 5, 2]}
         ),
     ),
 # 2TAB preview
@@ -319,6 +333,19 @@ https://www.e-nabavki.gov.mk/PublicAccess/home.aspx#/contracts/0
 )
 
 def server(input, output, session):
+    # count number of visitors, add 1 every time the page is loaded
+    global visitors_data
+    now_month = datetime.now().strftime("%Y-%m")
+
+    if visitors_data.get("month") != now_month:
+        visitors_data["monthly"] = 0
+        visitors_data["month"] = now_month
+    visitors_data["total"] += 1
+    visitors_data["monthly"] += 1
+
+    # save visitor count to json
+    with open(COUNTER_FILE, "w") as f:
+        json.dump(visitors_data, f)
 
     # Image rendering functions
     def render_image(image_name, width="100%"):
