@@ -10,10 +10,6 @@ from shiny import App, render, ui, reactive, req, ui
 
 #df = pd.read_excel('ContractsALL.xlsx')
 
-# test merge_temp
-# another test
-# more test
-
 # use this line when running on the shiny server
 with open("ContractsSMALL.csv", 'rb') as f:
 # use this line when running locally
@@ -82,7 +78,8 @@ app_ui = ui.page_navbar(
         ui.row(
         ui.card(  
             ui.card_header("ИЗВОР НА ПОДАТОЦИТЕ"),
-            ui.p("Податоците во оваа апликација се превземени од Електронскиот систем за јавни набавки - ЕСЈН во делот на склучени договори објавени во системот во период 01.01.2020 до 31.12.2024"),
+            ui.p("Податоците во оваа апликација се превземени од Електронскиот систем за јавни набавки - ЕСЈН во делот на склучени договори објавени во системот во период 01.01.2020 до 31.10.2025"),
+            ui.p("Приказот на сите податоци е исклучиво за информативни потреби. Државниот завод за ревизија не може да ја потврди целосната точност на извештаите од добиените прикази!"),
             ),
         ui.card(
             ui.card_header("СТАТИСТИЧКИ ПОДАТОЦИ"),
@@ -138,7 +135,7 @@ app_ui = ui.page_navbar(
             ),
             ui.column(
             6,
-            ui.input_date_range("daterange", " ПЕРИОД:", start="2020-01-01" , end="2024-12-31", width="450px"), ##START need corespondent with CSV#
+            ui.input_date_range("daterange", " ПЕРИОД:", start="2020-01-01" , end="2025-10-31", width="450px"), ##START need corespondent with CSV#
             ),
             ui.input_checkbox_group(  
                 "checkbox_columns",  
@@ -147,10 +144,6 @@ app_ui = ui.page_navbar(
                 inline=True,
                 width="100%"
                 ),
-        ),
-        ui.row(
-            ui.column(3),
-            ui.column(8, ui.download_button("downloadData", "Преземи податоци за ОБРАЗЕЦ ЈНПР и ЈНПП", width="800px", class_="btn-primary")),
         ),
         ui.output_data_frame("df_1"),
     ),
@@ -211,13 +204,9 @@ app_ui = ui.page_navbar(
                 #ui.output_text('subject'),
                 ui.column(
                 6,
-                    ui.input_date_range("daterange1", "ПЕРИОД:", start="2020-01-01" , end="2024-12-31", width="450px"), 
+                    ui.input_date_range("daterange1", "ПЕРИОД:", start="2020-01-01" , end="2025-10-31", width="450px"), 
                 ),
             ),
-        ui.row(
-        ui.column(3),
-        ui.column(8, ui.download_button("downloadData1", "Преземи податоци", width="800px", class_="btn-primary")),
-        ),
         ui.tags.h5("Подредена табела по вредност на склучените договори :"), 
         ui.output_data_frame("df_3"),
     ),
@@ -249,11 +238,6 @@ app_ui = ui.page_navbar(
                     ),
             ),
         ui.output_plot("plot1", height='400px', fill=False),
-                ui.row(
-        ui.column(3),
-        ui.column(8, 
-            ui.download_button("downloadData2", "Преземи податоци", width="800px", class_="btn-primary")),
-        ),   
         ui.tags.h5("Подредена табела по вредност на склучените договори"), 
         ui.output_data_frame("df_5"),
     ),
@@ -326,14 +310,6 @@ https://www.e-nabavki.gov.mk/PublicAccess/home.aspx#/contracts/0
 
 **Статистика** – Статистички податоци за набавки со најголеми износи, наголем број на склучени договори по носител на набавка, најголеми износи на склучени договори по договорен орган.  
 
-**Упатство** – Објаснување за користење на апликацијата.  
-
-
-Откако ќе ги селектирате сите колони за кои сакате да ги преземете податоците, стартувајте го копчето **`ПРЕЗЕМИ ПОДАТОЦИ за ОБРАЗЕЦ ЈНПР и ЈНПП`**.
-Податоците ќе се снимат под име ime_na_subjekt_JNPRiJNPP.csv во папката Downloads и за да можете да ги користите, потребно е да го отворите FinalenObrazecJNPRiJNPP_za_CSV и притоа во процесот на вчитување ќе треба да го импортирате снимениот csv фајл.
-Потребно е формираниот Образец да го снимите како ексел фајл.
-
-За преземање на податоци во табовите по **носител на набавка** и во табот **договори со една понуда**, при генерирање на csv датотеката и нејзино снимање во папката downloads, потребно е да отворите нов ексел документ и да го внесете истиот со Data > Import > from csv  и да го вчитате на тој начин во ексел.
 """
     )),
 
