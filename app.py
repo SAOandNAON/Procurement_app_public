@@ -13,20 +13,9 @@ from shiny.types import ImgData
 from shiny import App, render, ui, reactive, req, ui
 
 # log number of visitors in a simple json
-LOCK_FILE = "visitors.json.lock"
-COUNTER_FILE = "visitors.json"
-lock = FileLock(LOCK_FILE)
-
-with lock:
-    if os.path.exists(COUNTER_FILE):
-        with open(COUNTER_FILE, "r", encoding="utf-8") as f:
-            visitors_data = json.load(f)
-    else:
-        visitors_data = {
-            "total": 0,
-            "monthly": 0,
-            "month": datetime.now().strftime("%Y-%m")
-        }
+APP_DIR = "/home/ubuntu/myapp"
+LOCK_FILE = os.path.join(APP_DIR, "visitors.json.lock")
+COUNTER_FILE = os.path.join(APP_DIR, "visitors.json")
 
 # use this line when running on the shiny server
 with open("ContractsSMALL.csv", 'rb') as f:
@@ -128,11 +117,14 @@ app_ui = ui.page_navbar(
                 ui.p("This project is acomplished according Memorandum of cooperation between the National Audit Office of Norway and the State Audit Office"),
             ),
             ui.card(
-                ui.card_header("Visitors:", class_="text-end"),
-                ui.p(f"Total: {visitors_data['total']}, This month: {visitors_data['monthly']}", class_="text-end"),
+                ui.card_header("Visitors:"),
+                ui.div(
+                    ui.output_text("visits"),
+                    class_="text-end"
+                )
             ),
             col_widths={"sm": [5, 5, 2]}
-        ),
+        )
     ),
 # 2TAB preview
     ui.nav_panel(
@@ -342,21 +334,41 @@ https://www.e-nabavki.gov.mk/PublicAccess/home.aspx#/contracts/0
 )
 
 def server(input, output, session):
-    # count number of visitors, add 1 every time the page is loaded
-    global visitors_data
-    
-    current_month = datetime.now().strftime("%Y-%m")
-    if visitors_data.get("month") != current_month:
-        visitors_data["monthly"] = 0
-        visitors_data["month"] = current_month
+    @output
+    @render.text
+    def visits():
+        from filelock import FileLock
+        import os, json
+        from datetime import datetime
 
-    visitors_data["total"] += 1
-    visitors_data["monthly"] += 1
+        LOCK_FILE = "/home/ubuntu/myapp/visitors.json.lock"
+        COUNTER_FILE = "/home/ubuntu/myapp/visitors.json"
 
-    # save to file
-    with lock:
-        with open(COUNTER_FILE, "w", encoding="utf-8") as f:
-            json.dump(visitors_data, f)
+        lock = FileLock(LOCK_FILE)
+        with lock:
+            # Initialize file if missing or empty
+            if not os.path.exists(COUNTER_FILE) or os.stat(COUNTER_FILE).st_size == 0:
+                visitors_data = {"total": 0, "monthly": 0, "month": datetime.now().strftime("%Y-%m")}
+            else:
+                with open(COUNTER_FILE, "r", encoding="utf-8") as f:
+                    visitors_data = json.load(f)
+
+            # Reset monthly count if a new month
+            now_month = datetime.now().strftime("%Y-%m")
+            if visitors_data.get("month") != now_month:
+                visitors_data["monthly"] = 0
+                visitors_data["month"] = now_month
+
+            # Increment counters
+            visitors_data["total"] += 1
+            visitors_data["monthly"] += 1
+
+            # Save back to file
+            with open(COUNTER_FILE, "w", encoding="utf-8") as f:
+                json.dump(visitors_data, f)
+
+        # Return formatted string for UI
+        return f"Total: {visitors_data['total']}, This month: {visitors_data['monthly']}"
 
     # Image rendering functions
     def render_image(image_name, width="100%"):
